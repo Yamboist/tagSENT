@@ -10,3 +10,4 @@ analyzer :>
 We applied a rule-based approach on our sentiment analysis. We got our prior
 sentiment polarity from the SentiWordNet database. 
 
+We got all of our Tagalog words, English translations, and prior pos tags from: http://tagalog.pinoydictionary.com/.
