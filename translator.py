@@ -1,15 +1,20 @@
-import re,os
+import re,os,stemmer
+
+
 class Translator:
 
     #text file containing all the tagalog-english translations
     __WORDS_DIR = os.path.dirname(os.path.realpath("translator")) +"\\trainingData\\tag-eng.txt"
 
     __tagalog_words = {}
+
+
+    __stemmer = stemmer.Stemmer()
     
     def __init__(self):
         self.train()
         pass
-
+    
     def train(self,tag_eng = __WORDS_DIR):
         freader = open(tag_eng,"r")
         contents = freader.readlines()
@@ -44,12 +49,14 @@ class Translator:
                 for definition in defn:   
                     self.__tagalog_words[word_def[0]].append(definition)
         
-    def stemmer():
-        pass
-       
 
     def translate(self,word):
-        return self.__tagalog_words[word]
-
+        try:
+            return self.__tagalog_words[word]
+        except:
+            try:
+                return self.__tagalog_words[self.__stemmer.stem(word)]
+            except:
+                return None
 
 
