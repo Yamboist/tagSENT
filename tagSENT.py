@@ -15,9 +15,10 @@ class tagSENT:
         tagged_words = self.tagger.predict(text)
         score = [0,0]
         for word_tag in tagged_words:
-            if word_tag[1] in ["v","adv","adj"]:
-                
+            
+            if word_tag[1] in ["n","v","adv","adj"]:   
                 translated = self.trans.translate(word_tag[0])
+                print "translation: " + str(translated)
                 senti_score = self.senti.predict_multi(translated)
                 score[0] += senti_score[0]
                 score[1] += senti_score[1]
@@ -32,3 +33,4 @@ class tagSENT:
         
 
 q = tagSENT()
+print q.predict("Ang kanilang serbisyo ay kulang sa husay")

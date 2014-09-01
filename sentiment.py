@@ -50,8 +50,9 @@ class Sentiment:
             total_polarity[0] += temp_polarity[0]
             total_polarity[1] += temp_polarity[1]
 
-        total_polarity[0] /= len(iterable)
-        total_polarity[1] /= len(iterable)
+        if len(iterable) > 0:
+            total_polarity[0] /= len(iterable)
+            total_polarity[1] /= len(iterable)
         
         return total_polarity
     

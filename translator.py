@@ -38,6 +38,7 @@ class Translator:
             #remove POS tags like n., v., inf., and numberings 1. 2. ...
             for index in range(len(defn)):
                 defn[index] = re.sub("[A-Za-z0-9]{1,3}[.],?","",defn[index]).strip()
+                defn[index] = re.sub("([/][A-Za-z]+? )|([/][A-Za-z]+?$)","",defn[index])
 
             #if word is in dictionary, then add the definitions/translations
             if word_def[0] in self.__tagalog_words:
@@ -57,6 +58,6 @@ class Translator:
             try:
                 return self.__tagalog_words[self.__stemmer.stem(word)]
             except:
-                return None
+                return []
 
 
