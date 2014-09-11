@@ -11,6 +11,7 @@ class Sentiment:
     sentiwordnet = {}
     
     def __init__(self):
+        self.train()
         pass
     
     def train(self):
@@ -19,6 +20,7 @@ class Sentiment:
         fs.close()
 
         for line in contents:
+            
             entry = line.split("\t")
             pos_tag = entry[0]
             posi_score,nega_score = entry[2],entry[3]
@@ -38,6 +40,7 @@ class Sentiment:
         for entry in iterable:
             temp_polarity = [0,0]
             words = entry.split(" ")
+            
             for word in words:
                 word_polarity = self.predict(word)
                 
@@ -61,17 +64,26 @@ class Sentiment:
         neg = 0
         total = 0
         if pos_tag != "":
-            for item in self.sentiwordnet[word]:
-                if item[0] == pos_tag:
+            try:
+                for item in self.sentiwordnet[word]:
+                    if item[0] == pos_tag:
+                        pos+= float(item[1][0])
+                        neg+= float(item[1][1])
+                    total+=1
+            except:
+                pos += 0
+                neg += 0
+                total+= 1
+        else:
+            try:                    
+                for item in self.sentiwordnet[word]:
                     pos+= float(item[1][0])
                     neg+= float(item[1][1])
-                total+=1
-        else:
-            for item in self.sentiwordnet[word]:
-                pos+= float(item[1][0])
-                neg+= float(item[1][1])
-                total+=1
-            
+                    total+=1
+            except:
+                pos += 0
+                neg += 0
+                total+= 1
         return (pos/total,neg/total)
 
 

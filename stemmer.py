@@ -1,7 +1,7 @@
 import os
 
 class Stemmer():
-    __WORDS_DIR = os.path.dirname(os.path.realpath("stemmer")) +"\\trainingData\\tag-eng.txt"
+    __WORDS_DIR = os.path.dirname(os.path.realpath("stemmer")) +"\\trainingData\\words.txt"
 
     prefixes = ['ma', 'i', 'napaka', 'sing', 'magpapa', 'nagpapa',
                 'ni', 'nakaka', 'naka', 'nagkaka', 'nakikipag',
@@ -12,7 +12,7 @@ class Stemmer():
                 'pina', 'pang']
 
     
-    suffixes = ['han', 'an', 'hanin', 'hang', 'nin', 'hin', 'h']
+    suffixes = ['han', 'an', 'hanin', 'hang', 'nin', 'hin', 'h','ng','g']
 
     infixes = ['um','in','ar']
 
@@ -23,19 +23,30 @@ class Stemmer():
     
     def train(self):
         freader = open(self.__WORDS_DIR,"r")
+        
         contents = freader.readlines()
-        words_list = [i.replace("\n","") for i in contents]
+        self.words_list = [i.replace("\n","") for i in contents]
         freader.close()
 
         
     def stem(self,word,full=False):
         if not full and word in self.words_list:
             return word
+
+        if word.find("-")>=0:
+            return "ma"+word.split("-")[1]
         
         #remove prefixes
         for prefix in self.prefixes:
             if word.startswith(prefix):
                 word = word[len(prefix):]
+
+        #remove repeating elements
+        if word[:2] == word[2:4]:
+            word = word[2:]
+
+        if word in self.words_list:
+            return word
 
         #remove suffixes
         for suffix in self.suffixes:
@@ -51,9 +62,7 @@ class Stemmer():
         if word in self.words_list:
             return word
 
-        #remove repeating elements
-        if word[:2] == word[2:4]:
-            word = word[2:]
+        
             
         return word
 

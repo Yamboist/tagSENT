@@ -195,6 +195,8 @@ class POS_tagger():
         for pattern in self.__verb_patterns:
             if self.__regex_find(pattern,word):
                 return True
+        if word[0:2] == word[2:4]:
+            return True
         return False
 
     def __check_if_adjective_from_prefixes(self,word):
