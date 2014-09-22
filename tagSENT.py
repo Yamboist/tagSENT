@@ -40,6 +40,7 @@ class tagSENT:
             prediction.append([word_tag,senti_score])
       
         prediction = self.nearby_intensify(prediction)
+        prediction = self.nearby_intensify_reverse(prediction)
         prediction = self.negation(prediction)
         return prediction
             
@@ -62,7 +63,7 @@ class tagSENT:
             if prediction[index][0][0] in self.intensifiers:
                 
                 for word_score in prediction[index+1:]:
-                    if word_score[0][1] in ["adj"]:
+                    if word_score[0][1] in ["adj","AMB"]:
                         if word_score[1][0] > word_score[1][1]:
                             word_score[1][0] *= 1.7
                         else:
@@ -72,10 +73,29 @@ class tagSENT:
                         break
         return prediction
 
+    def nearby_intensify_reverse(self,prediction):
+        prediction.reverse()
+        for index in range(len(prediction)):
+            if prediction[index][0][0] in self.intensifiers and prediction[index][1] != [0,0]:
+                
+                for word_score in prediction[index+1:]:
+                    if word_score[0][1] in ["adj","AMB"]:
+                        if word_score[1][0] > word_score[1][1]:
+                            word_score[1][0] *= 1.7
+                        else:
+                            word_score[1][1] *= 1.7
+                            
+                        prediction[index][1] = [0,0]
+                        break
+        prediction.reverse()
+        return prediction
+
     def negation(self,prediction):
         for index in range(len(prediction)):
             if prediction[index][0][0] in self.negators:
                 for word_score in prediction[index+1:]:
+                    if word_score[0][0] in ["mas"]:
+                        break
                     if word_score[0][1] in ["adj","v","n"]:
                         print word_score[1]
                         word_score[1] = word_score[1][::-1]
@@ -83,9 +103,21 @@ class tagSENT:
                         prediction[index][1] = [0,0]
                         break
         return prediction
+
+    def predict(self,text):
+        pred = self.predict_each(text)
+        return self.total(pred)
+
+    def total(self,prediction):
+        total_sentiment = [0,0]
+        for i in prediction:
+            total_sentiment[0]+= i[1][0]
+            total_sentiment[1]+= i[1][1]
+        if total_sentiment[0] > total_sentiment[1]:
+            return ("POSITIVE",total_sentiment,prediction)
+        elif total_sentiment[0] < total_sentiment[1]:
+            return ("NEGATIVE",total_sentiment,prediction)
+        else:
+            return ("NEUTRAL",total_sentiment,prediction)
+
    
-        
-q = tagSENT()
-
-j = q.predict_each("walang tatalo")
-

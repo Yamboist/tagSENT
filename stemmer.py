@@ -32,7 +32,7 @@ class Stemmer():
     def stem(self,word,full=False):
         if not full and word in self.words_list:
             return word
-
+        print word
         if word.find("-")>=0:
             return "ma"+word.split("-")[1]
         
@@ -40,14 +40,14 @@ class Stemmer():
         for prefix in self.prefixes:
             if word.startswith(prefix):
                 word = word[len(prefix):]
-
+        print word
         #remove repeating elements
         if word[:2] == word[2:4]:
             word = word[2:]
-
+        print word
         if word in self.words_list:
             return word
-
+        print word
         #remove suffixes
         for suffix in self.suffixes:
             if word.endswith(suffix):

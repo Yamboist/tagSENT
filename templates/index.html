@@ -1,0 +1,53 @@
+<html>
+
+	<head>
+		<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+		<style>
+			body{
+				font-family: 'Open Sans', sans-serif;
+			}
+			h1{
+				font-size: 50px;
+			}
+			textarea{
+				width:300px;
+				height:200px;
+				margin:0 auto;
+			}
+			.centerer{
+				width: 301px;
+				margin:0 auto;
+			}
+
+			#submit{
+				border:solid 2px black;
+				background-color:#75E3FF;
+				width:100px;
+				height:40px;
+				border-radius: 5px;
+			}
+			#caption{
+				font-size:8pt;
+				margin-top: -30px;
+			}
+		</style>
+	</head>
+	<body>
+		<form method="POST" action="api" style="width:100%">
+
+			<center>
+				<h1>tagSENT api</h1>
+				<p id="caption">tagalog sentiment analyzer. detects the positivity or negativity of a sentence</p>
+				<br>
+				<small>Type a sentence and see its sentiment </small>
+				<br><br>
+				<textarea name="q"></textarea>
+				<br><br>
+				<input type="submit" value="submit" id="submit"/>
+			<center>
+				
+		</form>
+	</body>
+
+
+</html>
