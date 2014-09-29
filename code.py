@@ -15,8 +15,9 @@ class index:
         return render.index()
 
 class api:
+    
     def POST(self):
-
+        
         
         data = web.data()
         text = data.split("=")[1]
@@ -28,7 +29,9 @@ class api:
         result["scores"] = prediction[2]
         result["total"] = prediction[1]
        
-
+       
+        web.header('Access-Control-Allow-Origin', '*')
+        web.header('Access-Control-Allow-Credentials', 'true')
         scoreBuilder = ""
     
         for res in result["scores"]:
@@ -60,7 +63,7 @@ class api:
     <generalsentiment>%s</generalsentiment>
 </tagSENT>
         """ % ( result["total"][0], result["total"][1],scoreBuilder,result["sentiment"] )
-
+        
         return whole
 
 #web.webapi.internalerror = web.debugerror
