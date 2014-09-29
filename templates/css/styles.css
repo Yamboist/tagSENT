@@ -1,0 +1,25 @@
+<html>
+
+	<head>
+		<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+		<link href='css/styles.css' rel ="stylesheet" type="text/css" >
+	</head>
+	<body>
+		<div class="grid">
+			<div class="prediction-forms">
+				<center>
+					<h1>tagSENT api</h1>
+					<p id="caption">tagalog sentiment analyzer. detects the positivity or negativity of a sentence</p>
+					<br>
+					<small>Type a sentence and see its sentiment </small>
+					<br><br>
+					<textarea name="q"></textarea>
+					<br><br>
+					<input type="submit" value="submit" id="submit"/>
+				<center>
+			</div>
+		</div>
+	</body>
+
+
+</html>

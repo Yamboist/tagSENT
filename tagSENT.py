@@ -63,7 +63,7 @@ class tagSENT:
             if prediction[index][0][0] in self.intensifiers:
                 
                 for word_score in prediction[index+1:]:
-                    if word_score[0][1] in ["adj","AMB"]:
+                    if word_score[0][1] in ["adj","AMB","n","v"]:
                         if word_score[1][0] > word_score[1][1]:
                             word_score[1][0] *= 1.7
                         else:
@@ -79,7 +79,7 @@ class tagSENT:
             if prediction[index][0][0] in self.intensifiers and prediction[index][1] != [0,0]:
                 
                 for word_score in prediction[index+1:]:
-                    if word_score[0][1] in ["adj","AMB"]:
+                    if word_score[0][1] in ["adj","AMB","n","v"]:
                         if word_score[1][0] > word_score[1][1]:
                             word_score[1][0] *= 1.7
                         else:
