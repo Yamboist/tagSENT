@@ -7,7 +7,7 @@ class tagSENT:
     tagger = POS_tagger.POS_tagger()
 
     intensifiers = open("trainingData/intensifiers.txt","r").read().split("\n")
-    negators = ["hindi","wala","walang"]
+    negators = ["hindi","wala","walang","di"]
     
     def __init__(self):
         self.trans.train()
@@ -26,15 +26,16 @@ class tagSENT:
                 translated = self.trans.translate(word_tag[0])
                 #print "translation: " + str(translated)
                 senti_score = self.senti.predict_multi(translated)
+                word_tag.append(translated)
                 if senti_score[0] == senti_score[1]:
                     if word_tag[0].startswith("napaka") or word_tag[0].startswith("pinaka"):
                         senti_score = self.senti.predict_multi(self.trans.translate(re.sub("napaka|pinaka","ma",word_tag[0])))
-                        
+                            
                 senti_score = self.word_intensify(word_tag[0],senti_score)
                 score[0] += senti_score[0]
                 score[1] += senti_score[1]
                 #print senti_score
-               # print
+               #print
 
             
             prediction.append([word_tag,senti_score])
@@ -60,14 +61,23 @@ class tagSENT:
 
     def nearby_intensify(self,prediction):
         for index in range(len(prediction)):
-            if prediction[index][0][0] in self.intensifiers:
+            if prediction[index][0][0] in self.intensifiers or (prediction[index][1] != [0,0] and prediction[index][0][1] in ["adv","adj"] and prediction[index][0][0] not in self.negators ):
                 
                 for word_score in prediction[index+1:]:
-                    if word_score[0][1] in ["adj","AMB","n","v"]:
-                        if word_score[1][0] > word_score[1][1]:
-                            word_score[1][0] *= 1.7
-                        else:
-                            word_score[1][1] *= 1.7
+                    
+                    if word_score[0][1] in ["adj","AMB","n","v","UNK"]:
+                        if prediction[index][0][0] in self.intensifiers:
+                            if word_score[1][0] > word_score[1][1]:
+                                word_score[1][0] *= 1.7
+                            else:
+                                word_score[1][1] *= 1.7
+                        elif prediction[index][0][1] == "adj":
+                            word_score[1] = [word_score[1][0] + prediction[index][1][0] , word_score[1][1] + prediction[index][1][1]]
+                        else :
+                            if prediction[index][1][0] >prediction[index][1][1]:
+                                word_score[1][0] *= (1+prediction[index][1][0])
+                            else:
+                                word_score[1][1] *= (1+prediction[index][1][1])
                             
                         prediction[index][1] = [0,0]
                         break
@@ -76,10 +86,10 @@ class tagSENT:
     def nearby_intensify_reverse(self,prediction):
         prediction.reverse()
         for index in range(len(prediction)):
-            if prediction[index][0][0] in self.intensifiers and prediction[index][1] != [0,0]:
+            if prediction[index][0][0] in self.intensifiers :
                 
                 for word_score in prediction[index+1:]:
-                    if word_score[0][1] in ["adj","AMB","n","v"]:
+                    if word_score[0][1] in ["adj","AMB","n","v","UNK"]:
                         if word_score[1][0] > word_score[1][1]:
                             word_score[1][0] *= 1.7
                         else:
@@ -96,7 +106,7 @@ class tagSENT:
                 for word_score in prediction[index+1:]:
                     if word_score[0][0] in ["mas"]:
                         break
-                    if word_score[0][1] in ["adj","v","n"]:
+                    if word_score[0][1] in ["adj","v","n"] and (word_score[1] != [0.0,0.0] or word_score[1] != [0,0]):
                         print word_score[1]
                         word_score[1] = word_score[1][::-1]
                             
@@ -105,6 +115,7 @@ class tagSENT:
         return prediction
 
     def predict(self,text):
+        text = re.sub("([A-Za-z0-9])([.;,!?])","\g<1> \g<2>",text)
         pred = self.predict_each(text)
         return self.total(pred)
 

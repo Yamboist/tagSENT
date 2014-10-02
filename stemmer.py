@@ -12,7 +12,7 @@ class Stemmer():
                 'pina', 'pang']
 
     
-    suffixes = ['han', 'an', 'hanin', 'hang', 'nin', 'hin', 'h','ng','g']
+    suffixes = ['han', 'an', 'hanin', 'hang', 'nin', 'hin', 'h','ng','g','in']
 
     infixes = ['um','in','ar']
 
@@ -35,29 +35,31 @@ class Stemmer():
         print word
         if word.find("-")>=0:
             return "ma"+word.split("-")[1]
-        
+        print "[-]: "+word
         #remove prefixes
         for prefix in self.prefixes:
             if word.startswith(prefix):
                 word = word[len(prefix):]
-        print word
+                break
+        print "[prefix]: "+word 
         #remove repeating elements
         if word[:2] == word[2:4]:
             word = word[2:]
-        print word
+        print "[repeating]: "+word
         if word in self.words_list:
             return word
-        print word
+        
         #remove suffixes
+        
         for suffix in self.suffixes:
             if word.endswith(suffix):
                 word = word[:-len(suffix)]
-
+        print "[suffix]: "+word
         #remove affixes
         for infix in self.infixes:
             if word[1]+word[2] == infix:
                 word = word[0] + word[3:]
-
+        print "[infix]: "+word
         #check if the word exists already in the word list
         if word in self.words_list:
             return word

@@ -12,3 +12,4 @@ grabe
 grabeng
 mas
 naman
+dapat
