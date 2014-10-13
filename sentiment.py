@@ -63,7 +63,7 @@ class Sentiment:
         pos = 0
         neg = 0
         total = 0
-        if pos_tag != "":
+        if pos_tag != "" or pos_tag == "AMB" or pos_tag == "UNK":
             try:
                 for item in self.sentiwordnet[word]:
                     if item[0] == pos_tag:

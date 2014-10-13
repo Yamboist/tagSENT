@@ -7,8 +7,8 @@ class tagSENT:
     tagger = POS_tagger.POS_tagger()
 
     intensifiers = open("trainingData/intensifiers.txt","r").read().split("\n")
-    negators = ["hindi","wala","walang","di"]
-    
+    negators = ["hindi","wala","walang","di","Hindi","Wala","Walang","Di"]
+    attenuators = ["medyo"]
     def __init__(self):
         self.trans.train()
         self.senti.train()
@@ -36,8 +36,11 @@ class tagSENT:
                 score[1] += senti_score[1]
                 #print senti_score
                #print
-
-            
+    
+            if senti_score[0]>senti_score[1]:
+                senti_score = [senti_score[0],0]
+            elif senti_score[0]<senti_score[1]:
+                senti_score = [0,senti_score[1]]
             prediction.append([word_tag,senti_score])
       
         prediction = self.nearby_intensify(prediction)
@@ -60,9 +63,10 @@ class tagSENT:
         return score
 
     def nearby_intensify(self,prediction):
+        
         for index in range(len(prediction)):
-            if prediction[index][0][0] in self.intensifiers or (prediction[index][1] != [0,0] and prediction[index][0][1] in ["adv","adj"] and prediction[index][0][0] not in self.negators ):
-                
+            if prediction[index][0][0] in self.attenuators or prediction[index][0][0] in self.intensifiers or (prediction[index][1] != [0,0] and prediction[index][0][1] in ["adv","adj"] and prediction[index][0][0] not in self.negators ):
+                trig = False
                 for word_score in prediction[index+1:]:
                     
                     if word_score[0][1] in ["adj","AMB","n","v","UNK"]:
@@ -71,15 +75,29 @@ class tagSENT:
                                 word_score[1][0] *= 1.7
                             else:
                                 word_score[1][1] *= 1.7
+                            trig = True
+                        if prediction[index][0][0] in self.attenuators:
+                             word_score[1] = [word_score[1][0]*0.65,word_score[1][1]*0.65]
+                             trig = True
                         elif prediction[index][0][1] == "adj":
-                            word_score[1] = [word_score[1][0] + prediction[index][1][0] , word_score[1][1] + prediction[index][1][1]]
+                            if word_score[0][0] not in self.negators and word_score[0][0] not in self.attenuators and word_score[0][0] not in self.intensifiers:
+                                word_score[1] = [word_score[1][0] + prediction[index][1][0] , word_score[1][1] + prediction[index][1][1]]
+                                if word_score[1][0]>word_score[1][1]:
+                                    word_score[1][1] = 0
+                                elif word_score[1][0]<word_score[1][1]:
+                                    word_score[1][0] = 0
+                                trig = True
                         else :
-                            if prediction[index][1][0] >prediction[index][1][1]:
-                                word_score[1][0] *= (1+prediction[index][1][0])
-                            else:
-                                word_score[1][1] *= (1+prediction[index][1][1])
-                            
-                        prediction[index][1] = [0,0]
+                            if word_score[1] != [0,0]:
+                                if prediction[index][1][0] >prediction[index][1][1]:
+                                    word_score[1][0] *= (1+prediction[index][1][0])
+                                else:
+                                    word_score[1][1] *= (1+prediction[index][1][1])
+                                trig = True
+                        if trig:
+                            prediction[index][1] = [0,0]
+                        break
+                    elif word_score[0][1] in ["stopper","conj"]:
                         break
         return prediction
 
@@ -108,6 +126,7 @@ class tagSENT:
                         break
                     if word_score[0][1] in ["adj","v","n"] and (word_score[1] != [0.0,0.0] or word_score[1] != [0,0]):
                         print word_score[1]
+                    
                         word_score[1] = word_score[1][::-1]
                             
                         prediction[index][1] = [0,0]
@@ -121,9 +140,23 @@ class tagSENT:
 
     def total(self,prediction):
         total_sentiment = [0,0]
+
         for i in prediction:
-            total_sentiment[0]+= i[1][0]
-            total_sentiment[1]+= i[1][1]
+            if i[1][0] > 0.039:
+                total_sentiment[0]+= i[1][0]
+            if i[1][1] > 0.039:
+                total_sentiment[1]+= i[1][1]
+                
+        diff = 0
+        if 0 not in total_sentiment:
+            total = total_sentiment[0] + total_sentiment[1]
+            perc_neg = total/total_sentiment[1]
+            perc_pos = total/total_sentiment[0]
+            diff = abs(perc_neg - perc_pos)
+
+        
+        if total_sentiment>0.05 and diff>=.10:
+            total_sentiment[1] = total_sentiment[1] * 1.5
         if total_sentiment[0] > total_sentiment[1]:
             return ("POSITIVE",total_sentiment,prediction)
         elif total_sentiment[0] < total_sentiment[1]:

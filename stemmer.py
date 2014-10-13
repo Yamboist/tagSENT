@@ -1,11 +1,11 @@
-import os
+import os,re
 
 class Stemmer():
     __WORDS_DIR = os.path.dirname(os.path.realpath("stemmer")) +"\\trainingData\\words.txt"
 
     prefixes = ['ma', 'i', 'napaka', 'sing', 'magpapa', 'nagpapa',
                 'ni', 'nakaka', 'naka', 'nagkaka', 'nakikipag',
-                'nagpa', 'in', 'mag', 'um', 'mag', 'ma', 'maka', 'in',
+                'nagpa', 'in', 'mag', 'um', 'mag', 'maka', 'in',
                 'naka', 'taga', 'pang', 'pam', 'pag', 'kapag', 'kamag',
                 'nagka', 'nag', 'ipag', 'magka', 'mang', 'pag', 'nagkaka',
                 'nakakapag', 'magsi', 'pagka', 'pinag', 'na', 'pa',
@@ -30,9 +30,16 @@ class Stemmer():
 
         
     def stem(self,word,full=False):
+        inDB = False
         if not full and word in self.words_list:
             return word
         print word
+
+        #remove repeating elements
+        if word[:2] == word[2:4]:
+            word = word[2:]
+            
+        
         if word.find("-")>=0:
             return "ma"+word.split("-")[1]
         print "[-]: "+word
@@ -40,14 +47,21 @@ class Stemmer():
         for prefix in self.prefixes:
             if word.startswith(prefix):
                 word = word[len(prefix):]
+                try:
+                    if re.search("g[bcdfghjklmnpqrstvwxz]",word).start() == 0:
+                        word = word[1:]
+                except: pass
                 break
         print "[prefix]: "+word 
+        
+        if word in self.words_list:
+            return word
+        
         #remove repeating elements
         if word[:2] == word[2:4]:
             word = word[2:]
+            
         print "[repeating]: "+word
-        if word in self.words_list:
-            return word
         
         #remove suffixes
         
@@ -64,7 +78,9 @@ class Stemmer():
         if word in self.words_list:
             return word
 
-        
+                
             
         return word
+    
 
+    

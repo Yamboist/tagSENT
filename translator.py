@@ -25,7 +25,11 @@ class Translator:
             #definition is the always in the second index of word_def
             #replace remaining ":" if there is remaining
             defn = word_def[1].replace(":","").strip()
-            
+            """tag = re.findall("(adj[.])|(v[.])|(n[.])|(adv[.])|(conj[.])|(prep[.])",defn[1])[0]
+            try:
+                tag = re.findall("(adj[.])|(v[.])|(n[.])|(adv[.])|(conj[.])|(prep[.])",defn[1])[0]
+            except:
+                print defn"""
             defn = defn.replace(word_def[0],"").strip()
 
             #remove the line's other transformation, 
@@ -37,7 +41,8 @@ class Translator:
 
             #remove POS tags like n., v., inf., and numberings 1. 2. ...
             for index in range(len(defn)):
-                defn[index] = re.sub("[A-Za-z0-9]{1,3}[.],?","",defn[index]).strip()
+                
+                defn[index] = re.sub("[A-Za-z0-9]{1,4}[.],?","",defn[index]).strip()
                 defn[index] = re.sub("([/][A-Za-z]+? )|([/][A-Za-z]+?$)","",defn[index])
 
             #if word is in dictionary, then add the definitions/translations
@@ -50,8 +55,8 @@ class Translator:
                 for definition in defn:   
                     self.__tagalog_words[word_def[0]].append(definition)
         
-
-    def translate(self,word):
+    
+    def translate(self,word,pos_tag=""):
         try:
             return self.__tagalog_words[word]
         except:
