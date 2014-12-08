@@ -1,106 +1,254 @@
 import sentiment, translator, POS_tagger,re
+"""
+this module is the integration of three modules, namely
+Translator
+Sentiment
+POS Tagger
 
+It is the class that is the core of the tagalog sentiment analysis
+"""
 class tagSENT:
-
+    
+    #instance of the translator class
     trans = translator.Translator()
+
+    #instance of the sentiment class
     senti = sentiment.Sentiment()
+
+    #instance of the part of speech tagger classs
     tagger = POS_tagger.POS_tagger()
 
+    #variable that holds the variable for intensifiers [words that increase the polarity of a word]
     intensifiers = open("trainingData/intensifiers.txt","r").read().split("\n")
+
+    #negators are words that flip the polarity of a word
     negators = ["hindi","wala","walang","di","Hindi","Wala","Walang","Di"]
+
+    #attenuators are words that decrease the polarity of a word
     attenuators = ["medyo"]
+
+
     def __init__(self):
+        #train both models
         self.trans.train()
         self.senti.train()
         pass
 
+
+    """
+    this method is used to predict each of the sentiment of *sentiment bearing* words
+    such words are usually a non prepositional or non article words (n., adj., adv...)
+    -
+    accepts a string as a parameter, returns a list in a format [ [<word1>,[positive,negative]] , [...] , ...]
+    """
     def predict_each(self,text):
+        
+        #tag the words first using the pos tagger
+        #the format of the tagged words are based from the output of the tagging prediction
+        #[ [<word>,tag] , [<word2>,tag2] , ... ]
         tagged_words = self.tagger.predict(text)
+
+        #this variable stores the total score of the prediction
         score = [0,0]
-        #print tagged_words
+
+        #this variable stores the prediction, uh yeah obviously.
         prediction = []
+
+        #loop through all the tagged words
         for word_tag in tagged_words:
+
+            #store the sentiment score of the word being analyzed
             senti_score = [0,0]
+
+            #check if the pos tag of the word is a possible sentiment bearing word
+            #sentiment bearing words are words with a pos tag that is not prep., conj. or vbl.
             if word_tag[1] in ["n","v","adv","adj","AMB","UNK"]:
-                #print word_tag
+                
+                #translate the tagalog word to english. This variable is a list of translations : [trans1, trans2, trans3]
                 translated = self.trans.translate(word_tag[0])
-                #print "translation: " + str(translated)
+
+                #use the prediction module of sentiment class by feeding all the translations. This variable stores: [positive, negative]
                 senti_score = self.senti.predict_multi(translated)
+
+                #append to the word container its translation
                 word_tag.append(translated)
+
+                #if the the polarity of both is equal, most likely the word returned a [0,0] because it wasn't translated
                 if senti_score[0] == senti_score[1]:
+
+                    #check if the word contains an amplifier prefix
                     if word_tag[0].startswith("napaka") or word_tag[0].startswith("pinaka"):
+
+                        #replace the infix napaka/ pinaka with ma, and then predict its sentiment score
                         senti_score = self.senti.predict_multi(self.trans.translate(re.sub("napaka|pinaka","ma",word_tag[0])))
-                            
+
+                #increase the polarity of the word by checking whether it has a amplifying prefix
+                #or it is a repeating word ex: poging-pogi, matabang-mataba
+                #this intensification seeks for "-" in the word
                 senti_score = self.word_intensify(word_tag[0],senti_score)
+
+                #add the extracted sentiment score to the total sentiment score, [0] is postive, [1] is negative
                 score[0] += senti_score[0]
                 score[1] += senti_score[1]
-                #print senti_score
-               #print
-    
+                
+            #clear the score of the polarity that is lesser
+            #if the positive is greater than the negative
             if senti_score[0]>senti_score[1]:
+
+                #clear the negative score
                 senti_score = [senti_score[0],0]
+
+
+            #if the negative is greater than the positive
             elif senti_score[0]<senti_score[1]:
+
+                #clear the positive score
                 senti_score = [0,senti_score[1]]
+
+            #add the current prediction of the word to the list of predicted words (prediction) variable
             prediction.append([word_tag,senti_score])
-      
+
+        #use the nearby_intensify to check and apply the words that intensify its nearby word (forward)
+        #ex: sobrang galing, this amplifies galing. the search for the target word to be amplified is forward
         prediction = self.nearby_intensify(prediction)
+
+        #same as the previous method, but the search is in reverse
+        #ex: ang galing niya sobra.
         prediction = self.nearby_intensify_reverse(prediction)
+
+        #check for flipping words (negators), the search is only forward
         prediction = self.negation(prediction)
+
+        #return the list containing the predictions
         return prediction
-            
+
+    """
+    method that intensifies the word depending on its affixes
+    parameters:
+    word: string, the word being analyzed
+    score: original polarity scores
+    """
     def word_intensify(self,word,score):
+        
+        #if the word startswith napaka/ pinaka
         if word.startswith("napaka") or word.startswith("pinaka"):
+
+            #if the positive score is greater than the negative, amplify it 70%
             if score[0] > score[1]:
                 score[0] *= 1.7
+            #vice versa
             else:
                 score[1] *= 1.7
 
+        #if the word contains a "-" amplify the polarity by 50%
         if word.find("-") >=0:
             if score[0] > score[1]:
                 score[0] *= 1.5
             else:
                 score[1] *= 1.5
+
+        #return the modified score
         return score
 
+
+    """
+    this method checks whether there is an amplfying pattern within the prediction
+    ex: ADV. PREP. N. ADJ.
+    this method amplifies the ADJ, as given from this example
+    parameter - 
+    prediction: this can be extracted from predict_each
+    """
     def nearby_intensify(self,prediction):
-        
+
+        #loop all over the prediction list
         for index in range(len(prediction)):
+
+            #do this if the following condition/s is/are satisfied
+            #if the word being predicted is an attenuator
+            #if the word being predicted is an intensifier
+            
+            #if the prediction score of the word is not neutral (0,0) and the
+            #pos tag of the word is either an adj/ adv, and the word is not a negator
             if prediction[index][0][0] in self.attenuators or prediction[index][0][0] in self.intensifiers or (prediction[index][1] != [0,0] and prediction[index][0][1] in ["adv","adj"] and prediction[index][0][0] not in self.negators ):
+    
+                #trigger variable, this changes to true if the word being intensified is already found
                 trig = False
+
+                #searches ahead of the words
                 for word_score in prediction[index+1:]:
-                    
+
+                    #if the pos tag of the word is anything but adverb 
                     if word_score[0][1] in ["adj","AMB","n","v","UNK"]:
+
+                        #if the word is an intensifier
                         if prediction[index][0][0] in self.intensifiers:
+
+                            #amplify thes greater polarity score by 70%
                             if word_score[1][0] > word_score[1][1]:
                                 word_score[1][0] *= 1.7
                             else:
                                 word_score[1][1] *= 1.7
+
+                            #trigger the trig variable
                             trig = True
+
+                        #if the word is an attenuator
                         if prediction[index][0][0] in self.attenuators:
-                             word_score[1] = [word_score[1][0]*0.65,word_score[1][1]*0.65]
-                             trig = True
+                            
+                            #weaken the polarity by 45%
+                            word_score[1] = [word_score[1][0]*0.65,word_score[1][1]*0.65]
+                            trig = True
+                            
+                        #else if the pos tag of the word is an adjective 
                         elif prediction[index][0][1] == "adj":
+
+                            #if the word is not a negator/attenuator/intensifier
                             if word_score[0][0] not in self.negators and word_score[0][0] not in self.attenuators and word_score[0][0] not in self.intensifiers:
+
+                                #add the polarity of the describing word to the target word
                                 word_score[1] = [word_score[1][0] + prediction[index][1][0] , word_score[1][1] + prediction[index][1][1]]
+
+                                #clear the lesser scored polarity
                                 if word_score[1][0]>word_score[1][1]:
                                     word_score[1][1] = 0
                                 elif word_score[1][0]<word_score[1][1]:
                                     word_score[1][0] = 0
+
+                                #trigger
                                 trig = True
+
+                        #if it hasn't passed the previous conditions 
                         else :
+                            #if the polarity score isn't neutral
                             if word_score[1] != [0,0]:
+
+                                #multiply the greater polarity of the target word that by the polarity of the describing word
                                 if prediction[index][1][0] >prediction[index][1][1]:
                                     word_score[1][0] *= (1+prediction[index][1][0])
                                 else:
                                     word_score[1][1] *= (1+prediction[index][1][1])
+
+                                #trigger
                                 trig = True
+
+                        #if triggered, turn the polarity score of the describing word to neutral [0,0]
                         if trig:
                             prediction[index][1] = [0,0]
+                            
+                        #stop the loop
                         break
+
+                    #stop the loop if the pos tag of the target word is a stopper
                     elif word_score[0][1] in ["stopper","conj"]:
                         break
+
+        #return the modified prediction
         return prediction
 
+    """
+    this method is just like the nearby_intensify
+    however, we reverse the prediction list so it looks backwards and not forward
+    """
     def nearby_intensify_reverse(self,prediction):
         prediction.reverse()
         for index in range(len(prediction)):
@@ -118,6 +266,11 @@ class tagSENT:
         prediction.reverse()
         return prediction
 
+    """
+    this method utilizes the negators to achieve the flipping ability
+    parameter -
+    prediction: can be extracted from predict_each
+    """
     def negation(self,prediction):
         for index in range(len(prediction)):
             if prediction[index][0][0] in self.negators:
