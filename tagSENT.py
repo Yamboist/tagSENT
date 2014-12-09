@@ -250,20 +250,37 @@ class tagSENT:
     however, we reverse the prediction list so it looks backwards and not forward
     """
     def nearby_intensify_reverse(self,prediction):
+        #reverse the prediction list in place
         prediction.reverse()
+
+        #loop (forward) through all the elements of reversed prediction; essentially it looks backwards now
         for index in range(len(prediction)):
+
+            #if the word is an intensifier then
             if prediction[index][0][0] in self.intensifiers :
-                
+
+                #look forward for the target word
                 for word_score in prediction[index+1:]:
+
+                    #if the word is not an adverb then
                     if word_score[0][1] in ["adj","AMB","n","v","UNK"]:
+
+                        #amplify the polarity of the target word by 70%
                         if word_score[1][0] > word_score[1][1]:
                             word_score[1][0] *= 1.7
                         else:
                             word_score[1][1] *= 1.7
-                            
+
+                        #turn the describing word to neutral
                         prediction[index][1] = [0,0]
+
+                        #stop the loop
                         break
+
+        #bring the prediction list into its original position by re-reversing it
         prediction.reverse()
+
+        #return the modified prediction
         return prediction
 
     """
@@ -272,44 +289,105 @@ class tagSENT:
     prediction: can be extracted from predict_each
     """
     def negation(self,prediction):
+
+        #loop through the prediction list, checking if there is a negator on the list
         for index in range(len(prediction)):
+
+            #if a negator is seen then
             if prediction[index][0][0] in self.negators:
+
+                #loop forwards the list
                 for word_score in prediction[index+1:]:
+
+                    #if the word is "mas", stop the loop
                     if word_score[0][0] in ["mas"]:
                         break
+
+                    #if the word is an adjective/noun/verb and it is not neutral
                     if word_score[0][1] in ["adj","v","n"] and (word_score[1] != [0.0,0.0] or word_score[1] != [0,0]):
-                        print word_score[1]
-                    
+
+                        #reverse the polarity
                         word_score[1] = word_score[1][::-1]
-                            
+
+                        #turn the negator into a neutral polarity
                         prediction[index][1] = [0,0]
+
+                        #stop the loop
                         break
+
+        #return the modified prediction
         return prediction
 
+    """
+    this is the method that predicts the given text and outputs the total
+    parameters -
+    text: string, a grammatically correct text
+    output -
+    total - (<prediction_label>,[positive,negative],prediction_list)
+    """
     def predict(self,text):
+        
+        #seperate all punctuations to be a space from its neighbors
+        #example: Siya ay mabilis, ngunit mali-mali ang kanyang gawa. -> Siya ay mabilis , ngunit mali-mali ang kanyang gawa .
         text = re.sub("([A-Za-z0-9])([.;,!?])","\g<1> \g<2>",text)
+
+        #use the predict_each method to get the prediction_list
         pred = self.predict_each(text)
+
+        #return the analyzed total of the prediction list
         return self.total(pred)
 
+    """
+    this is the method that analyzes the output of predict_each (the prediction list)
+    parameters -
+    prediction - a list containing the details of the prediction; can be get from predict_each method
+    output -
+    total - (<prediction_label>,[positive,negative],prediction_list)
+    """
     def total(self,prediction):
+
+        #this the variable that stores the total sentiment of the given text
         total_sentiment = [0,0]
 
+        #loop through all the predictions
         for i in prediction:
+
+            #if the positive polarity is greater than 0.039 add it to the positive total
+            #0.039 is the threshold for a relevant polarity
             if i[1][0] > 0.039:
                 total_sentiment[0]+= i[1][0]
+
+            #same for negative
             if i[1][1] > 0.039:
                 total_sentiment[1]+= i[1][1]
-                
+
+        #this variable holds the difference
         diff = 0
+
+        #check if there is no zero value in the polarity score
         if 0 not in total_sentiment:
+
+            #get the total of the sentiments (would be used for percentage)
             total = total_sentiment[0] + total_sentiment[1]
+
+            #then, get the percentage of each polarity
             perc_neg = total/total_sentiment[1]
             perc_pos = total/total_sentiment[0]
+
+            #get the difference between the percentages of the polarities
             diff = abs(perc_neg - perc_pos)
 
-        
+
+        #if the difference between the polarities is greater than .10, then
         if total_sentiment>0.05 and diff>=.10:
+
+            #increase the negative by 50%
+            #studies show that people are biased to say positive than negative words
+            #thus positive scores tend to get higher than negatives
+            #therefore we amplify the bias to show true polarity
             total_sentiment[1] = total_sentiment[1] * 1.5
+
+        #return the corresponding greater polarity
         if total_sentiment[0] > total_sentiment[1]:
             return ("POSITIVE",total_sentiment,prediction)
         elif total_sentiment[0] < total_sentiment[1]:
