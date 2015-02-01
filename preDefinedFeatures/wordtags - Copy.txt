@@ -42929,7 +42929,11 @@ talabog : n
 talabulanan : n
 talabunyian : n
 taladaglatan : n
+talaga : adj
+talaga : adj
 talaga : adv
+talaga : n
+Talaga : 
 talagang hindi : comp
 talaghay : n
 talaguhitan : n

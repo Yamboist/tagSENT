@@ -48,7 +48,7 @@ class Translator:
 
                 #split the different definitions, clean each of unneccessary whitespace
                 #lowercase for consistency
-                defn = [i.strip().lower() for i in defn.split(";")]
+                defn = [self.clean_string(i).strip().lower() for i in defn.split(";")]
 
                 #if the dictionary has already registered the word
                 if self.__tagalog_words.has_key(word_def[0]):
@@ -64,7 +64,7 @@ class Translator:
                         self.__tagalog_words[word_def[0]][pos_tag] = defn
                 else:
                     self.__tagalog_words[word_def[0]]= {}
-                    self.__tagalog_words[word_def[0]][pos_tag] = defn
+                    self.__tagalog_words[word_def[0]][pos_tag] =defn
                            
             except:
                 pass
@@ -84,7 +84,7 @@ class Translator:
         #if the translation fails (dictionary lookup), stem it
         try:
             #if the pos tag is unspecified
-            if pos_tag == "":
+            if pos_tag == "" or pos_tag == "AMB" or pos_tag == "UNK":
 
                 #initialize the translations container
                 translations = []
@@ -92,15 +92,26 @@ class Translator:
                 #append all translations, regardless of pos tag
                 for key in self.__tagalog_words[word].keys():
                     translations += self.__tagalog_words[word][key]
+                
                 return translations
             else:
-
+                
                 #return translation for a specific pos tag
-                return self.__tagalog_words[word][pos_tag]
+                return self.__tagalog_words[word][pos_tag.lower()+"."]
+            
+        #if the translation errors due to an index not found
         except:
             try:
-                return self.__tagalog_words[self.__stemmer.stem(word)]
+                
+                return self.translate(self.stem2x(word)) + ["~"]
             except:
                 return []
 
+    def stem2x(self,word):
+        word = self.__stemmer.stem(word)
+        return self.__stemmer.stem(word)
 
+    #remove non-alphabet characters
+    def clean_string(self,word):
+        return re.sub("[^A-Za-z0-9 ]","",word)
+        

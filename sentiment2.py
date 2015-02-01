@@ -18,8 +18,18 @@ class Sentiment:
 
         #train swn using training data
         self.senti_machine = swn.SentiWordNetCorpusReader(self.training_data_sentiments)
-        pass
-    
+        
+    def transform_POS_tag(self,pos_tag):
+        if pos_tag == "adj":
+            return swn.wn.ADJ
+        elif pos_tag == "adv":
+            return swn.wn.ADV
+        elif pos_tag == "n":
+            return swn.wn.NOUN
+        elif pos_tag == "v":
+            return swn.wn.VERB
+        else:
+            return pos_tag
     #method used to predict a sentiment of an english word
     #using an optional pos tag
     def predict(self,word,pos_tag=""):
@@ -28,8 +38,9 @@ class Sentiment:
         obj = 0 #variable that holds the total objectivity score
         total = 0 #variable that holds the total number of synsets
 
+        pos_tag = self.transform_POS_tag(pos_tag)
         #if pos tag is undetermined, do this
-        if pos_tag == "":
+        if pos_tag == "" or pos_tag == "UNK" or pos_tag == "AMB":
 
             #loop through all of the synsets (possible word defns.)
             for item in self.senti_machine.senti_synsets(word):
@@ -40,6 +51,7 @@ class Sentiment:
                 obj += item.obj_score
                 total += 1
         else:
+            
             #loop through all of the synsets (possible word defns.) and using a pos tag
             for item in self.senti_machine.senti_synsets(word,pos_tag):
 
@@ -52,9 +64,10 @@ class Sentiment:
         #if there are no synsets available for the word, then use 0,0,0
         try:        
             #return average scores of each as as a tuple
-            return (pos/total,neg/total,obj/total)
-        except:
-            return (0,0,0)
+            return [pos/total,neg/total,obj/total]
+        except Exception,e:
+            print Exception, e
+            return [0,0,0]
 
 
     #when a tagalog word is translated, there are multiple translations
@@ -94,6 +107,9 @@ class Sentiment:
             neg += temp_neg 
             obj += temp_obj 
             total += 1
-
-        return (pos/total,neg/total,obj/total)
+        try:
+            return [pos/total,neg/total,obj/total]
+        except Exception,e:
+            print Exception, e
+            return [pos/1,neg/1,obj/1]
 
