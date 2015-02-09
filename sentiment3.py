@@ -66,19 +66,22 @@ class Sentiment:
     def predict_multi(self,iterable,pos_tag=""):
         total_polarity = [0,0,0]
         total = len(iterable)
+
         for entry in iterable:
             temp_polarity = [0,0,0]
             words = entry.split(" ")
             word_polarity = [0,0,0]
             
             words_total = len(words)
-            if len(words)>1 and words[0] not in self.do_not_include:
+            
+            if len(words)>=1:
+                
                 for word in words:
                     if word not in self.do_not_include and len(word)>1:
                         word_polarity = self.predict(word,pos_tag)
                         
                         if word_polarity == [0,0,0]:
-                            total-=1
+                            words_total-=1
 
                     else:
                         words_total-=1
@@ -87,10 +90,12 @@ class Sentiment:
                     temp_polarity[1] += word_polarity[1]
                     temp_polarity[2] += word_polarity[2]
 
-                
-                temp_polarity[0] /= words_total
-                temp_polarity[1] /= words_total
-                temp_polarity[2] /= words_total
+
+                if words_total > 0 :
+                    
+                    temp_polarity[0] /= float(words_total)
+                    temp_polarity[1] /= float(words_total)
+                    temp_polarity[2] /= float(words_total)
                 
                 total_polarity[0] += temp_polarity[0]
                 total_polarity[1] += temp_polarity[1]
@@ -98,13 +103,15 @@ class Sentiment:
             else:
                 total-=1
 
+      
+
         if total <= 0:
             return [0,0,0]   
 
         if len(iterable) > 0:
-            total_polarity[0] /= total
-            total_polarity[1] /= total
-            total_polarity[2] /= total
+            total_polarity[0] /= float(total)
+            total_polarity[1] /= float(total)
+            total_polarity[2] /= float(total)
 
          
         return total_polarity

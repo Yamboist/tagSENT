@@ -1,4 +1,4 @@
-import web, tagSENT, json,urllib
+import web, tagSENT2, json,urllib
 
 render = web.template.render('templates/')
 
@@ -8,7 +8,7 @@ urls = (
 )
 
 #initiliaze the sentiment analyzer
-senti = tagSENT.tagSENT()
+senti = tagSENT2.tagSENT()
 
 class index:
     def GET(self):

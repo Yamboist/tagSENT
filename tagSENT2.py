@@ -42,13 +42,18 @@ class tagSENT:
     -
     accepts a string as a parameter, returns a list in a format [ [<word1>,[positive,negative]] , [...] , ...]
     """
-    def predict_each(self,text):
+    def predict_each(self,text,tags=None):
         
         #tag the words first using the pos tagger
         #the format of the tagged words are based from the output of the tagging prediction
         #[ [<word>,tag] , [<word2>,tag2] , ... ]
-        tagged_words = self.tagger.predict(text)
-
+       
+        
+        if tags == None:
+            tagged_words = self.tagger.predict(text)
+        else:
+            tagged_words = [ [wrd,tg] for wrd,tg in zip(text.split(" "),tags.split(" "))]
+        
         #this variable stores the total score of the prediction
         score = [0,0]
 
@@ -67,20 +72,21 @@ class tagSENT:
                 
                 #translate the tagalog word to english. This variable is a list of translations : [trans1, trans2, trans3]
                 translated = self.trans.translate(word_tag[0],word_tag[1])
-
+                
                 #if the word is stemmed, there should be a ~ at the end, this is used so that the sentiment predictor
                 #wouldn't use its pos tag anymore. The pos tag would be unused as the word has been stemmed, thus
                 #the pos tag would also change
-                
-                if translated[-1] == "~":
-                    senti_score = self.senti.predict_multi(translated[:-1])
-                else:  
-                    #use the prediction module of sentiment class by feeding all the translations. This variable stores: [positive, negative]
-                    senti_score = self.senti.predict_multi(translated,word_tag[1])
+                if len(translated) > 0:
+                    if translated[-1] == "~":
+                        senti_score = self.senti.predict_multi(translated[:-1])
+                        print senti_score
+                    else:  
+                        #use the prediction module of sentiment class by feeding all the translations. This variable stores: [positive, negative]
+                        senti_score = self.senti.predict_multi(translated,word_tag[1])
+                        
 
                 #append to the word container its translation
                 word_tag.append(translated)
-
                 
                 #if the the polarity of both is equal, most likely the word returned a [0,0] because it wasn't translated
                 if senti_score[0] == senti_score[1]:
@@ -90,35 +96,38 @@ class tagSENT:
 
                         #replace the infix napaka/ pinaka with ma, and then predict its sentiment score
                         senti_score = self.senti.predict_multi(self.trans.translate(re.sub("napaka|pinaka","ma",word_tag[0]),word_tag[1]),word_tag[1])
-
+                
                 #increase the polarity of the word by checking whether it has a amplifying prefix
                 #or it is a repeating word ex: poging-pogi, matabang-mataba
                 #this intensification seeks for "-" in the word
                 senti_score = self.word_intensify(word_tag[0],senti_score)
 
+                
                 #add the extracted sentiment score to the total sentiment score, [0] is postive, [1] is negative
                 score[0] += senti_score[0]
                 score[1] += senti_score[1]
-
-                obj[0] = senti_score[2]
+                if len(senti_score) > 2:
+                    obj[0] = senti_score[2]
+                
                 
             #clear the score of the polarity that is lesser
             #if the positive is greater than the negative
             if senti_score[0]>senti_score[1]:
 
                 #clear the negative score
-                senti_score = [senti_score[0],0]
+                senti_score[1] = 0
 
 
             #if the negative is greater than the positive
             elif senti_score[0]<senti_score[1]:
 
                 #clear the positive score
-                senti_score = [0,senti_score[1]]
+                senti_score[0] = 0
 
             #add the current prediction of the word to the list of predicted words (prediction) variable
             if obj[0] >= 0.95:
-                senti_score = [0,0]
+                senti_score[0]=0
+                senti_score[1]=0
                 
             prediction.append([word_tag,senti_score+obj])
 
@@ -344,14 +353,14 @@ class tagSENT:
     output -
     total - (<prediction_label>,[positive,negative],prediction_list)
     """
-    def predict(self,text):
+    def predict(self,text,tags=None):
         
         #seperate all punctuations to be a space from its neighbors
         #example: Siya ay mabilis, ngunit mali-mali ang kanyang gawa. -> Siya ay mabilis , ngunit mali-mali ang kanyang gawa .
         text = re.sub("([A-Za-z0-9])([.;,!?])","\g<1> \g<2>",text)
 
         #use the predict_each method to get the prediction_list
-        pred = self.predict_each(text)
+        pred = self.predict_each(text,tags)
 
         #return the analyzed total of the prediction list
         return self.total(pred)
@@ -426,9 +435,9 @@ for i in contents:
     print "=============\n\n""
 
 """
-sentx = tagSENT()
+"""sentx = tagSENT()
 print "Training complete"
 pp = pprint.PrettyPrinter(indent=4)
 pp.pprint( sentx.predict( "ikaw linoloko mo lang ang sarili mo" ) )
-    
+""" 
 

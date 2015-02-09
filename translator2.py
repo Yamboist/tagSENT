@@ -102,7 +102,8 @@ class Translator:
         #if the translation errors due to an index not found
         except:
             try:
-                
+                if self.stem2x(word) == word:
+                    return word
                 return self.translate(self.stem2x(word)) + ["~"]
             except:
                 return []
