@@ -70,11 +70,15 @@ class Stemmer():
         for suffix in self.suffixes:
             if word.endswith(suffix):
                 word = word[:-len(suffix)]
+
+        if word in self.words_list:
+            return word
         #print "[suffix]: "+word
         #remove affixes
         for infix in self.infixes:
             if word[1]+word[2] == infix:
                 word = word[0] + word[3:]
+        
        # print "[infix]: "+word
         #check if the word exists already in the word list
         if word in self.words_list:

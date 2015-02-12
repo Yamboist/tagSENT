@@ -1,7 +1,8 @@
 #sentiment classifier for english using sentiwordnet language database
 
 import re,os
-
+from nltk.stem import *
+from nltk.stem.porter import *
 class Sentiment:
 
     training_data_sentiments = os.path.dirname(os.path.realpath("sentiment")) +"\\trainingData\senti.txt"
@@ -9,9 +10,11 @@ class Sentiment:
     #dictionary that contains the words and their corresponding
     #senti scores. Format is "index: [(pos_tag,(pos_score,neg_score))]"
     sentiwordnet = {}
-
+    stemmer = PorterStemmer()
+    
     do_not_include = ["is","and","was","are","for","the","were","there","this","that",
-                      "who","where","when","whose","why","but","on","in","which"]
+                      "who","where","when","whose","why","but","on","in","which",
+                      "very","much","so","the","too"]
         
     #pos tags equivalent
     #sentiwordnet uses a different naming for pos tags
@@ -80,8 +83,9 @@ class Sentiment:
                     if word not in self.do_not_include and len(word)>1:
                         word_polarity = self.predict(word,pos_tag)
                         
-                        if word_polarity == [0,0,0]:
+                        if word_polarity == [0,0,0] or word_polarity == [0,0,1]:
                             words_total-=1
+                            word_polarity[2] = 0
 
                     else:
                         words_total-=1
@@ -130,10 +134,10 @@ class Sentiment:
         entry = None
         
         if pos_tag == "" or pos_tag == "AMB" or pos_tag == "UNK":
+            
             try:
                 for pos_tag in self.sentiwordnet[word].keys():
                     for entry in self.sentiwordnet[word][pos_tag]:
-                    
 
                         total +=1
                         pos += float(entry[0]) 
@@ -142,8 +146,17 @@ class Sentiment:
                     
                     
             except KeyError:
-                print "#----- Word not found ------- "
-                return [0,0,0]
+                word = self.stemmer.stem(word)
+                if word in self.sentiwordnet.keys():
+                    return self.predict(word)
+                else:
+                    return [0,0,0]
+                """try:
+                    return self.predict(word)
+                except KeyError:
+                    print "#----- Word not found ------- "
+                    return [0,0,0] """
+                
                 
         else:
             try:
@@ -155,12 +168,26 @@ class Sentiment:
                     obj+= float(entry[2])
                     
             except KeyError:
+                word = self.stemmer.stem(word)
+                if word in self.sentiwordnet.keys():
+                    return self.predict(word)
+                else:
+                    return [0,0,0]
+                """try:
+
+                    return self.predict(word)
+                except KeyError:
+                    print "#----- Word not found ------- "
+                    return [0,0,0]"""
+                """
                 if word not in self.sentiwordnet.keys():
                     print "#----- Word not found ------- "
+                    
                 elif pos_tag not in self.sentiwordnet[word].keys():
+                   
                     print "#------ pos tag not found ------"
-                return [0,0,0]
-        
+                return [0,0,0]"""
+
         return [pos/total,neg/total,obj/total]
 
 

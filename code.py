@@ -20,11 +20,17 @@ class api:
         
         
         data = web.data()
-        text = data.split("=")[1]
+        #print data
+       # print data.split("=")
+        #raw_input()
+        text = data.split("=")[1].replace(" &p","")
+        #print text +"\n\n=================\n"
+        #raw_input()
+        tag = data.split("=")[2]
         text = text.replace("+"," ")
         text = urllib.unquote(text).decode('utf8')
         
-        prediction = senti.predict(text)
+        prediction = senti.predict(text,tag)
         result = {}
         result["sentiment"] = prediction[0]
         result["scores"] = prediction[2]

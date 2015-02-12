@@ -95,9 +95,12 @@ class Translator:
                 
                 return translations
             else:
+                if pos_tag.lower()+"." in self.__tagalog_words[word].keys():
+                    #return translation for a specific pos tag
+                    return self.__tagalog_words[word][pos_tag.lower()+"."]
+                elif self.__tagalog_words[word].keys()>0:
+                    return self.translate(word)
                 
-                #return translation for a specific pos tag
-                return self.__tagalog_words[word][pos_tag.lower()+"."]
             
         #if the translation errors due to an index not found
         except:

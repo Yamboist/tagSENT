@@ -12962,7 +12962,8 @@ kauna-unahan : kauna-unahan adj. earliest; the very first; premier
 kaunahan : kaunahan n. primacy; being first in order, rank or importance
 kaunin : kaunin (kinakaon, kinaon, kakaunin) v., inf. fetch (someone)
 kaunlaran : kaunlaran n. headway; growth; progress
-kaunti : kaunti n. 1. small amount; 2. drop; bit; 3. mouthful; 4. mite
+kaunti : kaunti n. 1. small amount; 2. drop; bit; 3. mouthful; 4. mite;
+kaunti : kaunti adj. 1. few; 2. scarce;
 kauntian : kauntian n. smallness; scarceness
 kaunting dunong : kaunting dunong comp., n. smattering of knowledge
 kaunting-kaunti : kaunting-kaunti n., fig. very small amount
@@ -21139,9 +21140,7 @@ mahagway : mahagway adj. tall and well-proportioned
 mahahalagang bagay : mahahalagang bagay n., pl. valuables
 mahahati : mahahati v., adj. divisible; capable of being divided
 mahakot : (nahahakot, nahakot, mahahakot) v., inf. be able to carry things away
-mahal : mahal adj. 1. expensive; high-priced; 2. costly; rich; elegant
-mahal : mahal adj. dear; beloved; esteemed; precious
-mahal : mahal adj. noble; highly born
+mahal : mahal adj. 1. expensive; high-priced; 2. costly;
 mahal : mahal n. 1. person who is loved; 2. dear, sweet, etc.
 mahalaga : mahalaga adj. costly; valuable; helpful; outstanding; useful
 mahalagahin : mahalagahin (nahahalagahin, nahalagahin, mahahalagahin) v., inf. treasure; value; appreciate
@@ -39812,7 +39811,7 @@ sakag : sakag n. small fishing net mounted between two poles in the form of an X
 sakahan : sakahan n. agricultural land; farm land
 sakahin : (sinasaka, sinaka, sasakahin) v., inf. farm; cultivate a peice of land
 sakahin : sakahin adj. arable
-sakal : sakal adj. 1. choked; strangled; 2. very tight (e.g. a collar)
+sakal : sakal adj. 1. choke; strangle;  
 sakal-sakal : sakal-sakal adj. held tightly by the throat, with intention to choke
 sakalan : sakalan n. act of strangling each other
 sakali : sakali adv. 1. in case; if; 2. perchance; perhaps

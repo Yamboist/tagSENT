@@ -26,7 +26,7 @@ class tagSENT:
     negators = ["hindi","wala","walang","di","Hindi","Wala","Walang","Di"]
 
     #attenuators are words that decrease the polarity of a word
-    attenuators = ["medyo"]
+    attenuators = ["medyo","halos","minsan"]
 
 
     def __init__(self):
@@ -52,11 +52,14 @@ class tagSENT:
         if tags == None:
             tagged_words = self.tagger.predict(text)
         else:
+            text = text.lower()
             tagged_words = [ [wrd,tg] for wrd,tg in zip(text.split(" "),tags.split(" "))]
+            
         
         #this variable stores the total score of the prediction
         score = [0,0]
-
+        #print tagged_words
+        #raw_input()
         #this variable stores the prediction, uh yeah obviously.
         prediction = []
 
@@ -72,7 +75,7 @@ class tagSENT:
                 
                 #translate the tagalog word to english. This variable is a list of translations : [trans1, trans2, trans3]
                 translated = self.trans.translate(word_tag[0],word_tag[1])
-                
+                print translated
                 #if the word is stemmed, there should be a ~ at the end, this is used so that the sentiment predictor
                 #wouldn't use its pos tag anymore. The pos tag would be unused as the word has been stemmed, thus
                 #the pos tag would also change
@@ -112,7 +115,7 @@ class tagSENT:
                 
             #clear the score of the polarity that is lesser
             #if the positive is greater than the negative
-            if senti_score[0]>senti_score[1]:
+            """if senti_score[0]>senti_score[1]:
 
                 #clear the negative score
                 senti_score[1] = 0
@@ -122,7 +125,7 @@ class tagSENT:
             elif senti_score[0]<senti_score[1]:
 
                 #clear the positive score
-                senti_score[0] = 0
+                senti_score[0] = 0"""
 
             #add the current prediction of the word to the list of predicted words (prediction) variable
             if obj[0] >= 0.95:
@@ -143,7 +146,7 @@ class tagSENT:
 
         #check for flipping words (negators), the search is only forward
         prediction = self.negation(prediction)
-
+        
         #return the list containing the predictions
         return prediction
 
@@ -194,7 +197,8 @@ class tagSENT:
             
             #if the prediction score of the word is not neutral (0,0) and the
             #pos tag of the word is either an adj/ adv, and the word is not a negator
-            if prediction[index][0][0] in self.attenuators or prediction[index][0][0] in self.intensifiers or (prediction[index][1] != [0,0,0] and prediction[index][0][1] in ["adv","adj"] and prediction[index][0][0] not in self.negators ):
+            #(prediction[index][1] != [0,0,0] and prediction[index][0][1] in ["adv","adj"] and prediction[index][0][0] not in self.negators )
+            if prediction[index][0][0] in self.attenuators or prediction[index][0][0] in self.intensifiers:
     
                 #trigger variable, this changes to true if the word being intensified is already found
                 trig = False
@@ -329,10 +333,14 @@ class tagSENT:
                         break
 
                     #if the word is an adjective/noun/verb and it is not neutral
-                    if word_score[0][1] in ["adj","v","n"] and (word_score[1] != [0.0,0.0,0.0]):
+                    if (word_score[0][1] in ["adj","v","n"] and (word_score[1] != [0.0,0.0,0.0])) or word_score[0][1] == "adv":
 
-
-                         #reverse the polarity
+                        if word_score[0][0] in self.intensifiers:
+                            
+                            prediction[index][1] = [i*0.6 for i in prediction[index][1]]
+                            break
+                            
+                        #reverse the polarity
                         word_score[1] = word_score[1][:2][::-1] + [word_score[1][2]]
                        
                         #word_score[1] = word_score[1][::-1]
@@ -383,11 +391,11 @@ class tagSENT:
 
             #if the positive polarity is greater than 0.039 add it to the positive total
             #0.039 is the threshold for a relevant polarity
-            if i[1][0] > 0.039:
+            if i[1][0] > 0.01:
                 total_sentiment[0]+= i[1][0]
 
             #same for negative
-            if i[1][1] > 0.039:
+            if i[1][1] > 0.01:
                 total_sentiment[1]+= i[1][1]
 
         #this variable holds the difference
@@ -424,7 +432,9 @@ class tagSENT:
         else:
             return ("NEUTRAL",total_sentiment,prediction)
 
-
+    def pretty(self,text,tag=None):
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(self.predict(text,tag)) 
 """x = open("tests/tests.txt")
 sentx =tagSENT()
 contents= x.readlines()
@@ -440,4 +450,6 @@ print "Training complete"
 pp = pprint.PrettyPrinter(indent=4)
 pp.pprint( sentx.predict( "ikaw linoloko mo lang ang sarili mo" ) )
 """ 
+x = tagSENT()
+x.pretty("Sapat naman siguro yung mga reference at libro sa library","adj adv adv det det n conj n prep n")
 
