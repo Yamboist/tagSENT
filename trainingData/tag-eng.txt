@@ -29814,7 +29814,7 @@ pagniningas : n. ignition; a catching on fire
 pagnunuynoy : pagnunuynoy n. reflection; serious thought; cogitation
 pagnuynoy : pagnuynoy n. reflection; serious thought; cogitation
 pago : n. 1. payment of a debt; 2. amount of a bet in a cockfight
-pagod : n. tiredness; lassitude; exhaustion
+pagod : n. tiredness; exhaustion
 pagod : pagod adj. tired; weary; careworn; used up
 pagod ng mata : mata comp. tired or weak condition of the eyes
 pagoda : n. pagoda
@@ -31151,6 +31151,7 @@ pahapaw : pahapaw adj., adv. done in a superficial manner
 paalabin : (pinaaalab, pinaalab, paaalabin) v., inf. 1. stir up; arouse; 2. electrify; 3. excite with strong feelings
 paalagaan : (pinapaalagaan, pinaalagaan, papaalagaan) v., inf. have someone taken care of by another
 paalalahanan : (pinapaalalahanan, pinaalalahanan, papaalalahanan) v., inf. admonish; remind
+paalala : n. guide; advice
 paalam : n. good-bye; farewell
 paalaman : (pinapaalaman, pinaalaman, papaalaman) v., inf. inform; let know; enlighten
 paaldabis : paaldabis adj. backhanded (with the back of the hand)
@@ -44112,7 +44113,7 @@ tinatanuran : tinatanuran adj. closely guarded
 tinatlo : tinatlo n. tripartite
 tinaw : tinaw n. transparent liquid from which the impurities have settled down
 tinayubay : adj. smoked (ref. to fish or meat)
-tinda : tinda n. goods for sale; merchandise
+tinda : tinda n. merchandise;
 tinda-tindahanan : n. children's game of shopkeeping
 tindag : tindag n. brilliance of splashing water at night (e.g. from a fountain)
 tindag : tindag n. fish or meat on a skewer

@@ -63,6 +63,7 @@ class tagSENT:
         #this variable stores the prediction, uh yeah obviously.
         prediction = []
 
+        wt_index = 0
         #loop through all the tagged words
         for word_tag in tagged_words:
 
@@ -75,7 +76,7 @@ class tagSENT:
                 
                 #translate the tagalog word to english. This variable is a list of translations : [trans1, trans2, trans3]
                 translated = self.trans.translate(word_tag[0],word_tag[1])
-                print translated
+                
                 #if the word is stemmed, there should be a ~ at the end, this is used so that the sentiment predictor
                 #wouldn't use its pos tag anymore. The pos tag would be unused as the word has been stemmed, thus
                 #the pos tag would also change
@@ -83,9 +84,19 @@ class tagSENT:
                     if translated[-1] == "~":
                         senti_score = self.senti.predict_multi(translated[:-1])
                         print senti_score
-                    else:  
-                        #use the prediction module of sentiment class by feeding all the translations. This variable stores: [positive, negative]
-                        senti_score = self.senti.predict_multi(translated,word_tag[1])
+                    else:
+                        #if the word is followed by a preposition, it is neutral
+                        #like "sa uso", "sa bayan" , "sa Makati", noun phrases like that do not express polarity
+                        if tagged_words[wt_index-1][1] == "prep" and word_tag[1] == "n":
+                            
+                            
+                            senti_score = [0,0,1]
+                        elif word_tag[0] in ["tapos"] and tagged_words[wt_index-1][1] in ["stopper","det","prep","adj"]:
+                            senti_score = [0,0,1]
+                            
+                        else:
+                            #use the prediction module of sentiment class by feeding all the translations. This variable stores: [positive, negative]
+                            senti_score = self.senti.predict_multi(translated,word_tag[1])
                         
 
                 #append to the word container its translation
@@ -128,11 +139,13 @@ class tagSENT:
                 senti_score[0] = 0"""
 
             #add the current prediction of the word to the list of predicted words (prediction) variable
-            if obj[0] >= 0.95:
+            if obj[0] > 0.95 or (obj[0] >= 0.9 and senti_score[0]<0.1 and senti_score[1]<0.1 and word_tag[1] == "n"):
                 senti_score[0]=0
                 senti_score[1]=0
                 
             prediction.append([word_tag,senti_score+obj])
+
+            wt_index +=1
 
             
 
@@ -198,7 +211,7 @@ class tagSENT:
             #if the prediction score of the word is not neutral (0,0) and the
             #pos tag of the word is either an adj/ adv, and the word is not a negator
             #(prediction[index][1] != [0,0,0] and prediction[index][0][1] in ["adv","adj"] and prediction[index][0][0] not in self.negators )
-            if prediction[index][0][0] in self.attenuators or prediction[index][0][0] in self.intensifiers:
+            if prediction[index][0][0] in self.attenuators or prediction[index][0][0] in self.intensifiers :
     
                 #trigger variable, this changes to true if the word being intensified is already found
                 trig = False
@@ -248,9 +261,10 @@ class tagSENT:
 
                         #if it hasn't passed the previous conditions 
                         else :
+                            
                             #if the polarity score isn't neutral
                             if word_score[1] != [0,0]:
-
+                                
                                 #multiply the greater polarity of the target word that by the polarity of the describing word
                                 if prediction[index][1][0] >prediction[index][1][1]:
                                     word_score[1][0] *= (1+prediction[index][1][0])
@@ -333,24 +347,31 @@ class tagSENT:
                         break
 
                     #if the word is an adjective/noun/verb and it is not neutral
-                    if (word_score[0][1] in ["adj","v","n"] and (word_score[1] != [0.0,0.0,0.0])) or word_score[0][1] == "adv":
-
+                    if (word_score[0][1] in ["adj","v","n"] and (word_score[1] != [0.0,0.0,0.0] and word_score[1] != [0.0,0.0,1.0] and word_score[1] != [0.0,0.0,0,0]) ) or word_score[0][1] == "adv":
+                        print word_score[1]
                         if word_score[0][0] in self.intensifiers:
                             
-                            prediction[index][1] = [i*0.6 for i in prediction[index][1]]
-                            break
-                            
-                        #reverse the polarity
-                        word_score[1] = word_score[1][:2][::-1] + [word_score[1][2]]
-                       
-                        #word_score[1] = word_score[1][::-1]
+                            #prediction[index][1] = [i*0.6 for i in prediction[index][1]]
+                            pass
+                        else:
 
-                        #turn the negator into a neutral polarity
-                        prediction[index][1] = [0,0,0]
+                            if word_score[0][1] == "adv":
+                                pass
+                            else:
+                                
+                                #reverse the polarity
+                                word_score[1] = word_score[1][:2][::-1] + [word_score[1][2]]
+                               
+                                #word_score[1] = word_score[1][::-1]
 
-                        #stop the loop
+                                #turn the negator into a neutral polarity
+                                prediction[index][1] = [0,0,0]
+
+                                #stop the loop
+                                break
+
+                    if word_score[0][1] in ["stopper"]:
                         break
-
         #return the modified prediction
         return prediction
 
@@ -422,7 +443,7 @@ class tagSENT:
             #studies show that people are biased to say positive than negative words
             #thus positive scores tend to get higher than negatives
             #therefore we amplify the bias to show true polarity
-            total_sentiment[1] = total_sentiment[1] * 1.5
+            total_sentiment[1] = total_sentiment[1] * 1
 
         #return the corresponding greater polarity
         if total_sentiment[0] > total_sentiment[1]:
@@ -451,5 +472,6 @@ pp = pprint.PrettyPrinter(indent=4)
 pp.pprint( sentx.predict( "ikaw linoloko mo lang ang sarili mo" ) )
 """ 
 x = tagSENT()
-x.pretty("Sapat naman siguro yung mga reference at libro sa library","adj adv adv det det n conj n prep n")
-
+#x.pretty("Wala masyadong estudyante na dumadalaw o nagpupunta ng library upang gawin ang kanilang takdang aralin","adv adj n conj v conj v prep n conj v det pr n n stopper stopper")
+x.pretty("Maayos ang pakikitungo ng mga employee at staff",
+         "adj det n prep det n conj n stopper")

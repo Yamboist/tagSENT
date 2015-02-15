@@ -76,7 +76,7 @@ class Sentiment:
             word_polarity = [0,0,0]
             
             words_total = len(words)
-            
+            pos_tag = ""
             if len(words)>=1:
                 
                 for word in words:
@@ -132,7 +132,7 @@ class Sentiment:
         obj = 0
         total = 0
         entry = None
-        
+        pos_tag = ""
         if pos_tag == "" or pos_tag == "AMB" or pos_tag == "UNK":
             
             try:
